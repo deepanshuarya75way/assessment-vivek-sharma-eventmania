@@ -3,7 +3,7 @@ const sessionSchema = new mongoose.Schema({
 
     userId :{
       type : mongoose.Schema.Types.ObjectId,
-      ref : "User",
+      ref : "Session",
       required : true
     },
     sessionToken :{
@@ -12,7 +12,7 @@ const sessionSchema = new mongoose.Schema({
     },
     activeUser : {
       type :boolean,
-      required : true
+      default : false
     }
 
 },{timeStamps : true});
