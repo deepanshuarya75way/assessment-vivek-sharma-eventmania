@@ -4,6 +4,12 @@ const OTP = require('../models/OTP');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const Session = require('../models/Sessions');
+
+const generateSession = (id,role) =>{
+    return jwt.sign({id,role}, process.env.SESSION_KEY, {expiresIn : '1d'})
+}
+
 
 const generateToken = (id,role) =>{
     return jwt.sign({id,role}, process.env.JWT_SECRET, {expiresIn : '7d'})
@@ -46,8 +52,12 @@ exports.registerUser = async(req,res) =>{
 //login user 
 exports.loginUser = async (req, res) => {
     try {
+        
         const { email, password } = req.body;
         const user = await User.findOne({ email });
+
+        const sessionToken = await Session.create({userId : user,activeUser : true});
+
         if (!user) return res.status(400).json({
             message: 'Invalid credentials please sign up' 
         });
@@ -75,7 +85,8 @@ exports.loginUser = async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
-            token: generateToken(user.id, user.role)
+            token: generateToken(user.id, user.role),
+            Session : generateSession(user.id,sessionToken.id)
         });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
