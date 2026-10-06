@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-
+const Session = require('../models/Sessions');
 // User auth
 const protect = async (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
@@ -39,4 +39,36 @@ const admin = (req, res, next) => {
     }
 };
 
-module.exports = { protect, admin };
+const session = async(req,res,next) =>{
+    const session = req.headers.authorization?.split(' ')[1];
+
+    if (session) {
+        try {
+            const decode = jwt.verify(token, process.env.SESSION_KEY);
+            req.user = await User.findById(decode.id).select('-password');
+
+            if (!req.user) {
+                return res.status(401).json({
+                    message: "NO active session"
+                });
+            }
+
+            if(req.activeUser == true){
+                return res.status(401).json({
+                    message: "Already Active session"
+                });
+            }
+            next();
+        } catch (error) {
+            return res.status(401).json({
+                message: "Already active session"
+            });
+        }
+    } else {
+        return res.status(401).json({
+            message: "Not authorized"
+        });
+    }
+}
+
+module.exports = { protect, admin , session};
